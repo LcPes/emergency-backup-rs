@@ -2,6 +2,7 @@ use eframe::egui;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::config::config::create_config;
+use crate::devices::devices::get_ext_devices;
 use crate::gui::gui::ExitStatus;
 
 /// App structure for egui's window implementation, contains three fields.
@@ -57,7 +58,7 @@ impl App {
             ui.heading("Choose an external device to use in case of emergency!");
 
             egui::ComboBox::new("select-menu", "").show_ui(ui, |ui| {
-                for option in Vec::<String>::new() {
+                for option in get_ext_devices() {
                     ui.selectable_value(
                         &mut self.picked_device,
                         Some(option.clone()),
