@@ -13,22 +13,28 @@ mod job;
 
 fn main() {
     let exists_job = exists_job();
-    let get_config = get_config();
+    let config = get_config();
+    let job_started = env::var("JOB_STARTED").is_ok_and(|var| var == "TRUE");
 
-    if env::var("JOB_STARTED").is_ok_and(|var| var.eq("TRUE")) {
+    if job_started {
         start_job();
-        start_warning_window();
+        let exit_status = start_warning_window();
+
+        if exit_status == ExitStatus::COMPLETED {
+            // DO COPY
+        }
+
         return;
     }
 
-    if exists_job || (!exists_job && !get_config.is_ok()) {
+    if exists_job || (!exists_job && !config.is_ok()) {
         kill_job();
         let exit_status = start_config_window();
 
         if exit_status == ExitStatus::COMPLETED {
             create_job();
         }
-    } else if !exists_job && get_config.is_ok() {
+    } else if !exists_job && config.is_ok() {
         create_job();
     }
 }

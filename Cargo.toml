@@ -5,8 +5,8 @@ edition = "2021"
 license = "MIT"
 
 [package.metadata.bundle]
-name = "eb-rs"                     # Nome visibile dell'app
-identifier = "com.emergency-backup-rs.eb-rs"   # Identificatore unico
+name = "eb-rs"
+identifier = "com.LcPes.eb-rs"
 icon = ["assets/MyIcon.icns"]
 
 
