@@ -1,9 +1,13 @@
 use eframe::egui;
 use std::{cell::RefCell, rc::Rc};
 
+use crate::config::config::create_config;
 use crate::gui::gui::ExitStatus;
-use crate::{create_config, devices::devices::get_ext_devices};
 
+/// App structure for egui's window implementation, contains three fields.
+/// * exit_status: determine how the window has been closed.
+/// * picked_paths: the array of picked paths associated with a bool to check if the path has been removed from the list.
+/// * picked_device: the device picked from the list.
 struct App {
     exit_status: Rc<RefCell<ExitStatus>>,
     picked_paths: Vec<(String, bool)>,
@@ -11,6 +15,7 @@ struct App {
 }
 
 impl App {
+    /// App struct constructor.
     fn new(_cc: &eframe::CreationContext, exit_status: Rc<RefCell<ExitStatus>>) -> Self {
         App {
             exit_status,
@@ -19,6 +24,10 @@ impl App {
         }
     }
 
+    /// Function to render the gui, to be called inside the update function of the eframe::App trait.
+    /// It renders two main components.
+    /// * a file picker to choose a path, the list of choosen paths and a button to remove them.
+    /// * a drop-down menu to choose between the external devices.
     fn show_config_window(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Choose up to five directories to save in case of emergency!");
@@ -48,7 +57,7 @@ impl App {
             ui.heading("Choose an external device to use in case of emergency!");
 
             egui::ComboBox::new("select-menu", "").show_ui(ui, |ui| {
-                for option in get_ext_devices() {
+                for option in Vec::<String>::new() {
                     ui.selectable_value(
                         &mut self.picked_device,
                         Some(option.clone()),
@@ -94,6 +103,8 @@ impl eframe::App for App {
     }
 }
 
+/// Function to start the configuration window, the caller waits until the window is closed.
+/// It returns the exit status.
 pub fn start_config_window() -> ExitStatus {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

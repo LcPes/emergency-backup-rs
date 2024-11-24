@@ -1,30 +1,14 @@
 use eframe::egui::TextBuffer;
 use std::{collections::HashMap, env, io::Write, path::PathBuf};
 
+/// Enum to handle various configuration errors
 pub enum ConfigError {
     ConfigCreationError,
     ConfigCorrupted,
 }
 
-pub fn check_config() -> bool {
-    let home_dir = std::env::var("HOME").expect("Unable to load the home directory");
-    let path_dir = PathBuf::from(home_dir)
-        .join("Library")
-        .join("Application Support")
-        .join("eb-rs");
-    let path_config = path_dir.join("config.conf");
-
-    if let Err(_) = std::fs::File::open(path_config) {
-        return false;
-    }
-
-    if get_config().is_err() {
-        return false;
-    }
-
-    true
-}
-
+/// Function to create the configuration file and directory structure, it compiles the file with paths and device informations.
+/// The configuration file uses a key-value format.
 pub fn create_config(
     selected_device: String,
     selected_paths: Vec<String>,
@@ -35,9 +19,6 @@ pub fn create_config(
         .join("Application Support")
         .join("eb-rs");
     let path_config = path_dir.join("config.conf");
-
-    println!("{:?}", home_dir);
-    println!("{:?}", path_config);
 
     if let Err(_) = std::fs::create_dir(path_dir) {
         return Err(ConfigError::ConfigCreationError);
@@ -63,6 +44,8 @@ pub fn create_config(
     Ok(())
 }
 
+/// Function to get the configuration from thw configuration file.
+/// It returns a tuple with the choosen device as the first element and the list a paths as the second.
 pub fn get_config() -> Result<(String, Vec<String>), ConfigError> {
     let home_dir = std::env::var("HOME").expect("Unable to load the home directory");
     let path_dir = PathBuf::from(home_dir)
@@ -100,15 +83,15 @@ pub fn get_config() -> Result<(String, Vec<String>), ConfigError> {
         })
         .collect::<HashMap<String, Vec<String>>>();
 
-    let selected_device = map.get("SELECTED_DEVICE");
-    let selected_paths = map.get("SELECTED_PATHS");
+    let selected_device_opt = map.get("SELECTED_DEVICE");
+    let selected_paths_opt = map.get("SELECTED_PATHS");
 
-    if selected_device.is_none() || selected_paths.is_none() {
+    if selected_device_opt.is_none() || selected_paths_opt.is_none() {
         return Err(ConfigError::ConfigCorrupted);
     }
 
-    Ok((
-        selected_device.unwrap().clone()[0].take(),
-        selected_paths.unwrap().clone(),
-    ))
+    let selected_device = selected_device_opt.unwrap().clone()[0].take();
+    let selected_paths = selected_device_opt.unwrap().clone();
+
+    Ok((selected_device, selected_paths))
 }
