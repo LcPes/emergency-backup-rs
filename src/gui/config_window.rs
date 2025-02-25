@@ -2,7 +2,7 @@ use byte_unit::Byte;
 use eframe::egui;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::config::config::create_config;
+use crate::config::config::create_configuration;
 use crate::gui::gui::ExitStatus;
 use crate::io::io::*;
 
@@ -99,10 +99,21 @@ impl App {
             .show_separator_line(false)
             .show(ctx, |ui| {
                 if ui.button("Start emergency backup!").clicked() {
-                    if self.picked_paths.len() > 0 && self.picked_device.is_some() {
+                    let total_size = self
+                        .picked_paths
+                        .iter()
+                        .map(|path| path.0.get_size())
+                        .sum::<u64>();
+
+                    if self.picked_paths.len() > 0
+                        && self
+                            .picked_device
+                            .clone()
+                            .is_some_and(|val| val.get_size() > total_size)
+                    {
                         *self.exit_status.borrow_mut() = ExitStatus::COMPLETED;
 
-                        let _ = create_config(
+                        let _ = create_configuration(
                             self.picked_device.take().unwrap().get_name(),
                             self.picked_paths
                                 .clone()
