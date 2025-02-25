@@ -2,8 +2,8 @@ use eframe::egui;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::config::config::create_config;
-use crate::devices::devices::get_ext_devices;
 use crate::gui::gui::ExitStatus;
+use crate::io::io::get_ext_devices;
 
 /// App structure for egui's window implementation, contains three fields.
 /// * exit_status: determine how the window has been closed.
@@ -11,8 +11,8 @@ use crate::gui::gui::ExitStatus;
 /// * picked_device: the device picked from the list.
 struct App {
     exit_status: Rc<RefCell<ExitStatus>>,
-    picked_paths: Vec<(String, bool)>,
-    picked_device: Option<String>,
+    picked_paths: Vec<((String, u64), bool)>,
+    picked_device: Option<(String, u64)>,
 }
 
 impl App {
@@ -32,12 +32,21 @@ impl App {
     fn show_config_window(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Choose up to five directories to save in case of emergency!");
+            ui.label(format!(
+                "Total size: {:?}",
+                self.picked_paths.iter().map(|path| path.0 .1).sum::<u64>()
+            ));
 
             if self.picked_paths.len() < 5 && ui.button("Open directory…").clicked() {
                 if let Some(path) = rfd::FileDialog::new().pick_folder() {
-                    let p = path.to_str().unwrap().to_string();
-                    if !self.picked_paths.contains(&(p.clone(), false)) {
-                        self.picked_paths.push((p, false));
+                    let path_name = path.to_str().unwrap().to_string();
+                    let path_size = fs_extra::dir::get_size(path).unwrap();
+
+                    if !self
+                        .picked_paths
+                        .contains(&((path_name.clone(), path_size), false))
+                    {
+                        self.picked_paths.push(((path_name, path_size), false));
                     }
                 }
             }
@@ -48,7 +57,10 @@ impl App {
                         self.picked_paths[i].1 = true;
                     }
 
-                    ui.label(format!("{:?}", self.picked_paths[i].0));
+                    ui.label(format!(
+                        "{:?}, {:?}",
+                        self.picked_paths[i].0 .0, self.picked_paths[i].0 .1
+                    ));
                 });
             }
 
@@ -58,11 +70,11 @@ impl App {
             ui.heading("Choose an external device to use in case of emergency!");
 
             egui::ComboBox::new("select-menu", "").show_ui(ui, |ui| {
-                for option in get_ext_devices() {
+                for device in get_ext_devices() {
                     ui.selectable_value(
                         &mut self.picked_device,
-                        Some(option.clone()),
-                        option.to_string(),
+                        Some(device.clone()),
+                        format!("{:?}, {:?}", device.0, device.1),
                     );
                 }
             });
@@ -70,7 +82,7 @@ impl App {
             if let Some(picked_device) = &self.picked_device {
                 ui.horizontal(|ui| {
                     ui.label("Picked external device:");
-                    ui.monospace(picked_device);
+                    ui.monospace(format!("{:?}, {:?}", picked_device.0, picked_device.1));
                 });
             }
         });
@@ -81,14 +93,16 @@ impl App {
                 if ui.button("Start emergency backup!").clicked() {
                     if self.picked_paths.len() > 0 && self.picked_device.is_some() {
                         *self.exit_status.borrow_mut() = ExitStatus::COMPLETED;
+
                         let _ = create_config(
-                            self.picked_device.take().unwrap(),
+                            self.picked_device.take().unwrap().0,
                             self.picked_paths
                                 .clone()
                                 .into_iter()
-                                .map(|path| path.0)
+                                .map(|path| path.0 .0)
                                 .collect(),
                         );
+
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 }
@@ -111,7 +125,7 @@ pub fn start_config_window() -> ExitStatus {
         viewport: egui::ViewportBuilder::default()
             .with_active(true)
             .with_resizable(false)
-            .with_inner_size([640.0, 240.0])
+            .with_inner_size([840.0, 240.0])
             .with_maximize_button(false)
             .with_drag_and_drop(false),
         vsync: false,

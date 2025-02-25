@@ -24,9 +24,9 @@ pub fn start_job() {
 /// Function to create a new job. It spawns a new process with specific environment variables to execute the job.
 pub fn create_job() {
     let _ = std::process::Command::new(std::env::current_exe().unwrap())
-        .env("JOB_STARTED", "TRUE")
+        .env("INSIDE_JOB", "TRUE")
         .spawn()
-        .expect("Unexpected error when createing background job.");
+        .expect("Unexpected error when creating background job.");
 }
 
 /// Function to kill an existing job.

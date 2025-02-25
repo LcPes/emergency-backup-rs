@@ -7,16 +7,15 @@ use gui::warning_window::*;
 use job::job::*;
 
 mod config;
-mod devices;
 mod gui;
+mod io;
 mod job;
 
 fn main() {
-    let exists_job = exists_job();
-    let config = get_config();
-    let job_started = env::var("JOB_STARTED").is_ok_and(|var| var == "TRUE");
+    let launch_job = env::var("LAUNCH_JOB").is_ok_and(|var| var == "TRUE");
+    let inside_job = env::var("INSIDE_JOB").is_ok_and(|var| var == "TRUE");
 
-    if job_started {
+    while inside_job {
         start_job();
         let exit_status = start_warning_window();
 
@@ -27,14 +26,17 @@ fn main() {
         return;
     }
 
-    if exists_job || (!exists_job && !config.is_ok()) {
+    if launch_job {
         kill_job();
-        let exit_status = start_config_window();
+        create_job();
 
-        if exit_status == ExitStatus::COMPLETED {
-            create_job();
-        }
-    } else if !exists_job && config.is_ok() {
+        return;
+    }
+
+    let exit_status = start_config_window();
+
+    if exit_status == ExitStatus::COMPLETED {
+        kill_job();
         create_job();
     }
 }
