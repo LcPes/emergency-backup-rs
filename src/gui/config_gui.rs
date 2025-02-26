@@ -30,7 +30,7 @@ impl App {
     /// It renders two main components.
     /// * a file picker to choose a path, the list of choosen paths and a button to remove them.
     /// * a drop-down menu to choose between the external devices.
-    fn show_config_window(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn show_config_gui(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Choose up to five directories to save in case of emergency!");
             ui.label(format!(
@@ -132,14 +132,14 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         if *self.exit_status.borrow() == ExitStatus::UNCOMPLETED {
-            self.show_config_window(ctx, frame);
+            self.show_config_gui(ctx, frame);
         }
     }
 }
 
-/// Function to start the configuration window, the caller waits until the window is closed.
+/// Function to start the configuration gui, the caller waits until the gui is closed.
 /// It returns the exit status.
-pub fn start_config_window() -> ExitStatus {
+pub fn start_config_gui() -> ExitStatus {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_active(true)

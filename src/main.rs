@@ -1,9 +1,9 @@
 use std::env;
 
-use config::config::get_configuration;
-use gui::config_window::*;
+use config::config::{get_configuration, ConfigError};
+use gui::config_gui::*;
 use gui::gui::ExitStatus;
-use gui::warning_window::*;
+use gui::utils_gui::*;
 use job::job::*;
 
 mod config;
@@ -18,14 +18,14 @@ fn main() {
 
     if (launch_job || inside_job) && configuration.is_err() {
         // Display corruption gui
-
+        start_corruption_gui();
         return;
     }
 
     while inside_job {
         start_job();
 
-        let exit_status = start_warning_window();
+        let exit_status = start_waning_gui();
 
         if exit_status == ExitStatus::COMPLETED {
             // DO COPY
@@ -39,7 +39,7 @@ fn main() {
         return;
     }
 
-    let exit_status = start_config_window();
+    let exit_status = start_config_gui();
 
     if exit_status == ExitStatus::COMPLETED {
         kill_job();

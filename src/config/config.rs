@@ -9,6 +9,7 @@ use std::{
 /// Enum to handle various configuration errors
 pub enum ConfigError {
     ConfigCreationError,
+    ConfigNotFound,
     ConfigCorrupted,
 }
 
@@ -84,7 +85,7 @@ pub fn get_configuration() -> Result<Config, ConfigError> {
     let config_file = std::fs::File::open(path_config);
 
     if config_file.is_err() {
-        return Err(ConfigError::ConfigCorrupted);
+        return Err(ConfigError::ConfigNotFound);
     }
 
     let mut data = String::new();
