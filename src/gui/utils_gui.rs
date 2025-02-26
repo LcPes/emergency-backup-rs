@@ -69,7 +69,12 @@ impl App {
 
     /// Function to render the gui, to be called inside the update function of eframe::App trait
     ///
-    fn show_corruption_gui(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {}
+    fn show_corruption_gui(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Warning!");
+            ui.label("The configuration seems to be corrupted, please repeat the configuration process again.")
+        });
+    }
 }
 
 impl eframe::App for App {
