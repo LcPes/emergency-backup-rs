@@ -1,10 +1,5 @@
 use std::ffi::OsStr;
 
-/// Function to start a job. It starts the job inside an already existing process. It has to be executed only when the environmental variable **JOB_STARTED** is set to "TRUE"
-pub fn start_job() {
-    println!("Inside job");
-}
-
 /// Function to create a new job. It spawns a new process with specific environment variables to execute the job.
 pub fn create_job() {
     let _ = std::process::Command::new(std::env::current_exe().unwrap())

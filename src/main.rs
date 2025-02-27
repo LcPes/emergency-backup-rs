@@ -1,15 +1,17 @@
 use std::env;
 
-use config::config::{get_configuration, ConfigError};
+use config::config::get_configuration;
 use gui::config_gui::*;
 use gui::gui::ExitStatus;
 use gui::utils_gui::*;
 use job::job::*;
+use pattern_recognition::pattern_recognition::{PatternRecognition, RectanglePattern};
 
 mod config;
 mod gui;
 mod io;
 mod job;
+mod pattern_recognition;
 
 fn main() {
     let launch_job = env::var("LAUNCH_JOB").is_ok_and(|var| var == "TRUE");
@@ -22,13 +24,17 @@ fn main() {
         return;
     }
 
-    while inside_job {
-        start_job();
+    if inside_job {
+        let mut pt = PatternRecognition::<RectanglePattern>::new_rectangle_pattern();
 
-        let exit_status = start_waning_gui();
+        loop {
+            if pt.recognize_pattern() {
+                let exit_status = start_waning_gui();
 
-        if exit_status == ExitStatus::COMPLETED {
-            // DO COPY
+                if exit_status == ExitStatus::COMPLETED {
+                    // DO COPY
+                }
+            }
         }
     }
 
