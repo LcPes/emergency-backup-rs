@@ -131,7 +131,7 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        if *self.exit_status.borrow() == ExitStatus::UNCOMPLETED {
+        if *self.exit_status.borrow() == ExitStatus::PROCESSING {
             self.show_config_gui(ctx, frame);
         }
     }

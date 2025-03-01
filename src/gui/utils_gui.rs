@@ -53,7 +53,7 @@ impl App {
         });
 
         if time_left >= Duration::from_secs(WARNING_WINDOW_DURATION) {
-            *self.exit_status.borrow_mut() = ExitStatus::UNCOMPLETED;
+            *self.exit_status.borrow_mut() = ExitStatus::COMPLETED;
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
 
@@ -61,7 +61,7 @@ impl App {
             .show_separator_line(false)
             .show(ctx, |ui| {
                 if ui.button("Cancel").clicked() {
-                    *self.exit_status.borrow_mut() = ExitStatus::COMPLETED;
+                    *self.exit_status.borrow_mut() = ExitStatus::UNCOMPLETED;
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             });
@@ -79,7 +79,7 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        if *self.exit_status.borrow() == ExitStatus::UNCOMPLETED {
+        if *self.exit_status.borrow() == ExitStatus::PROCESSING {
             match self.gui_type {
                 UtilsGuiType::WarningGui => self.show_warning_gui(ctx, frame),
                 UtilsGuiType::CorruptionGui => self.show_corruption_gui(ctx, frame),
@@ -90,7 +90,7 @@ impl eframe::App for App {
 
 /// Function to start the warning gui, the caller waits until the window is closed.
 /// It returns the exit status.
-pub fn start_waning_gui() -> ExitStatus {
+pub fn start_warning_gui() -> ExitStatus {
     start_utils_gui(UtilsGuiType::WarningGui)
 }
 

@@ -9,10 +9,14 @@ pub fn create_job() {
 }
 
 /// Function to kill an existing job.
-pub fn kill_job() {
+pub fn kill_job(this: bool) {
     let this_pid = sysinfo::get_current_pid().unwrap();
     let s = sysinfo::System::new_all();
     let process_name = OsStr::new("eb-rs");
+
+    if this {
+        s.process(this_pid).unwrap().kill();
+    }
 
     for process in s.processes_by_exact_name(&process_name) {
         let p_pid = process.pid();

@@ -1,4 +1,7 @@
 use byte_unit::Byte;
+use chrono::prelude::Local;
+use fs_extra::{copy_items, dir::CopyOptions};
+use std::path::PathBuf;
 use sysinfo::Disks;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
@@ -63,7 +66,8 @@ impl std::fmt::Display for Folder {
     }
 }
 
-/// Function to get the list of external devices, name and available space in bytes, filtering disks if they are removable. The list refresh every time you attach a new external device.
+/// Function to get the list of external devices, name and available space in bytes, filtering disks if they are removable.
+/// The list refresh every time you attach a new external device.
 pub fn get_ext_devices() -> Vec<Device> {
     let disk_list = Disks::new_with_refreshed_list();
 
@@ -72,4 +76,25 @@ pub fn get_ext_devices() -> Vec<Device> {
         .filter(|d| d.is_removable())
         .map(|d| Device::new(d.name().to_str().unwrap().to_string(), d.available_space()))
         .collect::<Vec<Device>>()
+}
+
+///
+pub fn execute_copy(device_name: String, path_names: Vec<String>) {
+    let wrap_dir = format!("eb-rs-backup-{}", Local::now().to_string());
+    let dst = PathBuf::from("/Volumes").join(device_name);
+
+    if !dst.exists() {
+        return;
+    }
+
+    let _ = dst.join(wrap_dir);
+    let _ = std::fs::create_dir(dst.clone());
+    let copy_options = CopyOptions::default().overwrite(true);
+
+    match copy_items(path_names.as_slice(), dst, &copy_options) {
+        Ok(_) => {}
+        Err(err) => {
+            println!("{:?}", err);
+        }
+    }
 }

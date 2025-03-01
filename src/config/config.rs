@@ -7,6 +7,7 @@ use std::{
 };
 
 /// Enum to handle various configuration errors
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub enum ConfigError {
     ConfigCreationError,
     ConfigNotFound,
@@ -21,7 +22,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(device_name: String, path_names: Vec<String>) -> Self {
+    fn new(device_name: String, path_names: Vec<String>) -> Self {
         Config {
             device_name,
             path_names,
@@ -81,7 +82,7 @@ pub fn get_configuration() -> Result<Config, ConfigError> {
         .join("Library")
         .join("Application Support")
         .join("eb-rs");
-    let path_config = path_dir.join("config.conf");
+    let path_config = path_dir.join("config.json");
     let config_file = std::fs::File::open(path_config);
 
     if config_file.is_err() {
