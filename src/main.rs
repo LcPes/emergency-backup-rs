@@ -1,16 +1,15 @@
 use std::env;
 
 use config::config::get_configuration;
-use cpu_tracker::cpu_tracker::CpuTracker;
 use gui::config_gui::*;
 use gui::gui::ExitStatus;
 use gui::utils_gui::*;
 use io::io::execute_copy;
 use job::job::*;
 use pattern_recognition::pattern_recognition::{PatternRecognition, RectanglePattern};
+use utils::setup_autolaunch;
 
 mod config;
-mod cpu_tracker;
 mod gui;
 mod io;
 mod job;
@@ -25,7 +24,7 @@ fn main() {
     if inside_job {
         let mut pt = PatternRecognition::<RectanglePattern>::new_rectangle_pattern();
         utils::create_cpu_logger();
-        CpuTracker::new().start_cpu_tracker();
+        utils::start_cpu_tracker();
 
         loop {
             if pt.recognize_pattern() {
@@ -54,6 +53,7 @@ fn main() {
     let exit_status = start_config_gui();
 
     if exit_status == ExitStatus::COMPLETED {
+        setup_autolaunch();
         kill_job(false);
         create_job();
     }
