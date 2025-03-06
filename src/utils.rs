@@ -63,7 +63,7 @@ pub fn setup_autolaunch() {
     let launcher_name = "eb-rs_launcher.app";
     let launcher_path = path_dir.join(launcher_name);
 
-    let script = "do shell script \"export LAUNCH_JOB=TRUE; /Users/lucapes/Applications/eb-rs.app/Contents/MacOS/eb-rs\"";
+    let script = format!("do shell script \"HOME={} LAUNCH_JOB=TRUE /Users/$(whoami)/Applications/eb-rs.app/Contents/MacOS/eb-rs &\"", home_dir);
     let script_name = "autolaunch.scpt";
     let script_path = path_dir.join(script_name);
 

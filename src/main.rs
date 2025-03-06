@@ -51,6 +51,7 @@ fn main() {
     }
 
     let exit_status = start_config_gui();
+    println!("{}", std::env::current_dir().unwrap().to_str().unwrap());
 
     if exit_status == ExitStatus::COMPLETED {
         setup_autolaunch();
