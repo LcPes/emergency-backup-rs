@@ -5,7 +5,6 @@ use std::{env, process};
 /// Function to create a new job. It spawns a new process with specific environment variables to execute the job.
 pub fn create_job() {
     let home_dir = env::var("HOME").expect("Unable to load the home directory");
-    let applications_path = PathBuf::from(home_dir.clone()).join("Applications");
     let app_path = PathBuf::from(home_dir.clone())
         .join("Applications")
         .join("eb-rs.app")
@@ -19,6 +18,7 @@ pub fn create_job() {
     };
 
     let _ = process::Command::new(executable_path)
+        .env("HOME", home_dir)
         .env("INSIDE_JOB", "TRUE")
         .spawn()
         .expect("Unexpected error when creating background job.");

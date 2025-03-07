@@ -1,6 +1,8 @@
 use auto_launch::AutoLaunchBuilder;
 use log::info;
+use plist::{dictionary, to_writer_xml, Value};
 use simplelog::*;
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -54,7 +56,8 @@ pub fn start_cpu_tracker() {
 }
 
 /// Setup autolaunch by creating a script with applescript and compiling to an .app used as launcher
-pub fn setup_autolaunch() {
+#[warn(dead_code)]
+pub fn setup_autolaunch_applescript() {
     let home_dir = env::var("HOME").expect("Unable to load the home directory");
     let path_dir = PathBuf::from(home_dir.clone())
         .join("Library")
@@ -63,7 +66,7 @@ pub fn setup_autolaunch() {
     let launcher_name = "eb-rs_launcher.app";
     let launcher_path = path_dir.join(launcher_name);
 
-    let script = format!("do shell script \"HOME={} LAUNCH_JOB=TRUE /Users/$(whoami)/Applications/eb-rs.app/Contents/MacOS/eb-rs &\"", home_dir);
+    let script = format!("do shell script \"HOME={} LAUNCH_JOB=TRUE /Users/$(whoami)/Applications/eb-rs.app/Contents/MacOS/eb-rs\"", home_dir);
     let script_name = "autolaunch.scpt";
     let script_path = path_dir.join(script_name);
 
@@ -101,4 +104,78 @@ pub fn setup_autolaunch() {
             eprintln!("Error: {}", e);
         }
     }
+}
+
+pub fn setup_autolaunch_launchd() {
+    let home_dir = env::var("HOME").expect("Unable to load the home directory");
+    let app_path = PathBuf::from(home_dir.clone())
+        .join("Applications")
+        .join("eb-rs.app")
+        .join("Contents")
+        .join("MacOS")
+        .join("eb-rs");
+    let launch_agents_path = PathBuf::from(home_dir.clone())
+        .join("Library")
+        .join("LaunchAgents");
+    let plist_name = "com.eb-rs";
+    let plist_path =
+        PathBuf::from(launch_agents_path.clone()).join(format!("{}.plist", plist_name));
+
+    let atb = AutoLaunchBuilder::new()
+        .set_app_name(plist_name)
+        .set_app_path(app_path.to_str().unwrap())
+        .set_use_launch_agent(true)
+        .build();
+
+    match atb {
+        Ok(at) => {
+            if at.is_enabled().is_ok_and(|enabled| enabled == false) {
+                at.enable().unwrap();
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+        }
+    }
+
+    let plist_file = File::open(&plist_path).unwrap();
+    let mut plist_data = Value::from_reader(plist_file).unwrap();
+
+    if let Value::Dictionary(plist_dict) = &mut plist_data {
+        let mut env_vars = HashMap::new();
+        env_vars.insert("HOME".to_string(), Value::String(home_dir));
+        env_vars.insert("INSIDE_JOB".to_string(), Value::String("TRUE".to_string()));
+
+        let env_var_key = "EnvironmentVariables".to_string();
+        let keepalive_key = "KeepAlive".to_string();
+
+        if plist_dict.contains_key(&env_var_key) {
+            plist_dict.remove(&env_var_key);
+        }
+
+        let env_vars_dict = dictionary::Dictionary::from_iter(env_vars);
+
+        plist_dict.insert(keepalive_key, Value::Boolean(true));
+        plist_dict.insert(env_var_key, Value::Dictionary(env_vars_dict));
+    }
+
+    let new_plist = File::create(&plist_path).unwrap();
+    to_writer_xml(new_plist, &plist_data).unwrap();
+
+    let _ = Command::new("launchctl")
+        .arg("remove")
+        .arg(plist_name)
+        .output();
+
+    let user_id_out = Command::new("id").arg("-u").output().unwrap();
+    let user_id = String::from_utf8(user_id_out.stdout)
+        .unwrap()
+        .trim()
+        .to_string();
+
+    let _ = Command::new("launchctl")
+        .arg("bootstrap")
+        .arg(format!("gui/{}", user_id))
+        .arg(plist_path.to_str().unwrap())
+        .output();
 }

@@ -8,13 +8,12 @@ use eframe::egui;
 
 use crate::gui::gui::ExitStatus;
 
-/// Set a 15 seconds timer
+/// 15 seconds timer
 const WARNING_WINDOW_DURATION: u64 = 15;
 
 ///
 enum UtilsGuiType {
     WarningGui,
-    CorruptionGui,
 }
 
 /// App structure for egui's window implementation, contains three fields.
@@ -49,7 +48,6 @@ impl App {
             ui.heading("Warning!");
             ui.label("The backup process has started, if you want to cancel it press the button, otherwise wait for the backup to start!");
             ui.label(format!("The window will close automatically in {:?} seconds.", WARNING_WINDOW_DURATION - time_left.as_secs()));
-            ctx.request_repaint_after(Duration::from_millis(50));
         });
 
         if time_left >= Duration::from_secs(WARNING_WINDOW_DURATION) {
@@ -65,15 +63,8 @@ impl App {
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             });
-    }
 
-    /// Function to render the gui, to be called inside the update function of eframe::App trait
-    ///
-    fn show_corruption_gui(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Warning!");
-            ui.label("The configuration seems to be corrupted, please repeat the configuration process again.")
-        });
+        ctx.request_repaint_after(Duration::from_millis(200));
     }
 }
 
@@ -82,7 +73,6 @@ impl eframe::App for App {
         if *self.exit_status.borrow() == ExitStatus::PROCESSING {
             match self.gui_type {
                 UtilsGuiType::WarningGui => self.show_warning_gui(ctx, frame),
-                UtilsGuiType::CorruptionGui => self.show_corruption_gui(ctx, frame),
             }
         }
     }
@@ -92,12 +82,6 @@ impl eframe::App for App {
 /// It returns the exit status.
 pub fn start_warning_gui() -> ExitStatus {
     start_utils_gui(UtilsGuiType::WarningGui)
-}
-
-/// Function to start the corruption gui, the caller waits until the window is closed.
-/// It returns the exit status.
-pub fn start_corruption_gui() -> ExitStatus {
-    start_utils_gui(UtilsGuiType::CorruptionGui)
 }
 
 fn start_utils_gui(gui_type: UtilsGuiType) -> ExitStatus {

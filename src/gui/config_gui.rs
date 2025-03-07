@@ -1,10 +1,10 @@
-use byte_unit::Byte;
-use eframe::egui;
-use std::{cell::RefCell, rc::Rc};
-
 use crate::config::config::create_configuration;
 use crate::gui::gui::ExitStatus;
 use crate::io::io::*;
+use byte_unit::Byte;
+use eframe::egui;
+use std::time::Duration;
+use std::{cell::RefCell, rc::Rc};
 
 /// App structure for egui's window implementation, contains three fields.
 /// * exit_status: determine how the window has been closed.
@@ -126,6 +126,8 @@ impl App {
                     }
                 }
             });
+
+        ctx.request_repaint_after(Duration::from_millis(200));
     }
 }
 
