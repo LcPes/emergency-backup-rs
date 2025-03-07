@@ -54,8 +54,8 @@ impl App {
 
         App {
             exit_status,
-            picked_paths: picked_paths,
-            picked_device: picked_device,
+            picked_paths,
+            picked_device,
         }
     }
 
