@@ -36,7 +36,6 @@ fn main() {
                     execute_copy(device_name, path_names);
                 }
 
-                create_job();
                 kill_job(true);
             }
         }
@@ -49,7 +48,12 @@ fn main() {
         return;
     }
 
-    let exit_status = start_config_gui();
+    let old_config = if let Ok(configuration) = configuration {
+        Some(configuration.clone())
+    } else {
+        None
+    };
+    let exit_status = start_config_gui(old_config);
 
     if exit_status == ExitStatus::COMPLETED {
         kill_job(false);

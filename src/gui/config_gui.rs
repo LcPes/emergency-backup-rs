@@ -1,9 +1,10 @@
-use crate::config::config::create_configuration;
+use crate::config::config::{create_configuration, Config};
 use crate::gui::gui::ExitStatus;
 use crate::io::io::*;
 use byte_unit::Byte;
 use eframe::egui;
 use eframe::egui::IconData;
+use fs_extra::dir::get_size;
 use std::time::Duration;
 use std::{cell::RefCell, rc::Rc};
 
@@ -19,11 +20,42 @@ struct App {
 
 impl App {
     /// App struct constructor.
-    fn new(_cc: &eframe::CreationContext, exit_status: Rc<RefCell<ExitStatus>>) -> Self {
+    fn new(
+        _cc: &eframe::CreationContext,
+        exit_status: Rc<RefCell<ExitStatus>>,
+        old_config: Option<Config>,
+    ) -> Self {
+        let (picked_paths, picked_device) = if let Some(old_config) = old_config {
+            let device_name = old_config.get_device_name();
+            let path_names = old_config.get_path_names();
+            let attached_devices = get_ext_devices();
+
+            (
+                path_names
+                    .iter()
+                    .map(|path_name| {
+                        (
+                            Folder::new(path_name.clone(), get_size(path_name).unwrap()),
+                            false,
+                        )
+                    })
+                    .collect(),
+                Some(
+                    attached_devices
+                        .iter()
+                        .find(|device| device.get_name() == device_name)
+                        .unwrap()
+                        .clone(),
+                ),
+            )
+        } else {
+            (Vec::new(), None)
+        };
+
         App {
             exit_status,
-            picked_paths: Vec::new(),
-            picked_device: None,
+            picked_paths: picked_paths,
+            picked_device: picked_device,
         }
     }
 
@@ -50,7 +82,7 @@ impl App {
             if self.picked_paths.len() < 5 && ui.button("Open directory…").clicked() {
                 if let Some(path) = rfd::FileDialog::new().pick_folder() {
                     let path_name = path.to_str().unwrap().to_string();
-                    let path_size = fs_extra::dir::get_size(path).unwrap();
+                    let path_size = get_size(path).unwrap();
 
                     if !self
                         .picked_paths
@@ -142,7 +174,7 @@ impl eframe::App for App {
 
 /// Function to start the configuration gui, the caller waits until the gui is closed.
 /// It returns the exit status.
-pub fn start_config_gui() -> ExitStatus {
+pub fn start_config_gui(old_config: Option<Config>) -> ExitStatus {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_active(true)
@@ -161,7 +193,13 @@ pub fn start_config_gui() -> ExitStatus {
     let _ = eframe::run_native(
         "emergency-backup-rs",
         options,
-        Box::new(|_cc| Ok(Box::new(App::new(_cc, exit_status.clone())))),
+        Box::new(|_cc| {
+            Ok(Box::new(App::new(
+                _cc,
+                exit_status.clone(),
+                old_config.clone(),
+            )))
+        }),
     );
 
     exit_status.take()
