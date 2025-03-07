@@ -3,6 +3,7 @@ use crate::gui::gui::ExitStatus;
 use crate::io::io::*;
 use byte_unit::Byte;
 use eframe::egui;
+use eframe::egui::IconData;
 use std::time::Duration;
 use std::{cell::RefCell, rc::Rc};
 
@@ -148,7 +149,8 @@ pub fn start_config_gui() -> ExitStatus {
             .with_resizable(false)
             .with_inner_size([640.0, 360.0])
             .with_maximize_button(false)
-            .with_drag_and_drop(false),
+            .with_drag_and_drop(false)
+            .with_icon(IconData::default()),
         vsync: false,
         run_and_return: true,
         ..Default::default()

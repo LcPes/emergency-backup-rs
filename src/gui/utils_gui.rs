@@ -4,9 +4,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use eframe::egui;
-
 use crate::gui::gui::ExitStatus;
+use eframe::egui;
+use eframe::egui::IconData;
 
 /// 15 seconds timer
 const WARNING_WINDOW_DURATION: u64 = 15;
@@ -94,7 +94,8 @@ fn start_utils_gui(gui_type: UtilsGuiType) -> ExitStatus {
             .with_close_button(false)
             .with_maximize_button(false)
             .with_minimize_button(false)
-            .with_always_on_top(),
+            .with_always_on_top()
+            .with_icon(IconData::default()),
         vsync: false,
         run_and_return: true,
         ..Default::default()
