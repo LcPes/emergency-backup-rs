@@ -80,14 +80,14 @@ pub fn get_ext_devices() -> Vec<Device> {
 
 ///
 pub fn execute_copy(device_name: String, path_names: Vec<String>) {
-    let wrap_dir = format!("eb-rs-backup-{}", Local::now().to_string());
+    let wrap_dir = format!("backup-{}", Local::now().format("%Y-%m-%d_%H-%M-%S"));
     let dst = PathBuf::from("/Volumes").join(device_name);
 
     if !dst.exists() {
         return;
     }
 
-    let _ = dst.join(wrap_dir);
+    let dst = dst.join(wrap_dir);
     let _ = std::fs::create_dir(dst.clone());
     let copy_options = CopyOptions::default().overwrite(true);
 

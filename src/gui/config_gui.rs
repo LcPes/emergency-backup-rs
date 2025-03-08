@@ -34,19 +34,21 @@ impl App {
                 path_names
                     .iter()
                     .map(|path_name| {
-                        (
-                            Folder::new(path_name.clone(), get_size(path_name).unwrap()),
-                            false,
-                        )
+                        if let Ok(folder_size) = get_size(path_name) {
+                            (Folder::new(path_name.clone(), folder_size), false)
+                        } else {
+                            (Folder::new(String::new(), 0), true)
+                        }
                     })
                     .collect(),
-                Some(
-                    attached_devices
-                        .iter()
-                        .find(|device| device.get_name() == device_name)
-                        .unwrap()
-                        .clone(),
-                ),
+                if let Some(attached_device) = attached_devices
+                    .iter()
+                    .find(|device| device.get_name() == device_name)
+                {
+                    Some(attached_device.clone())
+                } else {
+                    None
+                },
             )
         } else {
             (Vec::new(), None)
