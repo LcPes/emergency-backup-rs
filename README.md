@@ -48,7 +48,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 2. Move the built application to the `~/Applications` folder:
    ```bash
-   mv target/release/emergency-backup-rs.app ~/Applications/
+    mv target/debug/bundle/osx/eb-rs.app ~/Applications/.
    ```
 
 Alternatively, you can package the application and move it to `~/Applications` if required for distribution.
